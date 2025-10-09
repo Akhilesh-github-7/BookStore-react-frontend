@@ -61,7 +61,7 @@ function Favorites() {
             {favorites.map((book) => (
               <div key={book._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden group">
                 <div className="relative">
-                  <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `http://localhost:5000/${book.coverImageURL}` : `http://localhost:5000${book.coverImageURL}`) : `https://via.placeholder.com/300x400.png?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="aspect-[3/4] w-full object-cover" />
+                  <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `http://localhost:5002/${book.coverImageURL}` : `http://localhost:5002${book.coverImageURL}`) : `https://via.placeholder.com/300x400.png?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="aspect-[3/4] w-full object-cover" />
                   <div className="absolute top-2 right-2 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <div className="bg-white dark:bg-gray-700 rounded-full p-1.5 shadow-md" onClick={() => handleRemoveFavorite(book._id)}>
                       <FaHeart className="text-red-500" />

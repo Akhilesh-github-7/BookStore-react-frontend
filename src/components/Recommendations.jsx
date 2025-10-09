@@ -16,7 +16,7 @@ function Recommendations() {
     const fetchRecommendedBooks = async () => {
       try {
         const response = await API.get('/public-books?sortBy=rating');
-        setBooks(response.data);
+        setBooks(response.data.books);
       } catch (err) {
         setError(t('Failed to fetch recommended books.'));
         console.error('Error fetching recommended books:', err);
@@ -40,11 +40,18 @@ function Recommendations() {
 
   const handleAddToFavorites = async (bookId) => {
     // Optimistic UI update
-    setFavoritedBooks([...favoritedBooks, bookId]);
+    setFavoritedBooks((prevFavoritedBooks) => {
+      if (prevFavoritedBooks.some(book => book._id === bookId)) {
+        return prevFavoritedBooks;
+      }
+      const bookToAdd = books.find(book => book._id === bookId);
+      return bookToAdd ? [...prevFavoritedBooks, bookToAdd] : prevFavoritedBooks;
+    });
 
     try {
       await API.post('/favorites', { bookId });
-    } catch (err) {
+    }
+    catch (err) {
       // Revert UI update on error
       setFavoritedBooks(favoritedBooks.filter(id => id !== bookId));
       setError(t('Failed to add book to favorites.'));
@@ -82,7 +89,7 @@ function Recommendations() {
           {books.map((book) => (
             <div key={book._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden group">
               <div className="relative">
-                <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `http://localhost:5000/${book.coverImageURL}` : `http://localhost:5000${book.coverImageURL}`) : `https://via.placeholder.com/300x400.png?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="aspect-[3/4] w-full object-cover" />
+                <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `http://localhost:5002/${book.coverImageURL}` : `http://localhost:5002${book.coverImageURL}`) : `https://via.placeholder.com/300x400.png?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="aspect-[3/4] w-full object-cover" />
                 <div className="absolute top-2 right-2 bg-white dark:bg-gray-700 rounded-full p-1.5 shadow-md opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleAddToFavorites(book._id)}>
                   <FaHeart className={favoritedBooks.includes(book._id) ? 'text-red-500' : 'text-gray-400'} />
                 </div>

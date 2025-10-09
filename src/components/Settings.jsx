@@ -38,6 +38,7 @@ function Settings() {
     if (!isDownloadsOpen) {
       try {
         const response = await API.get('/history');
+        console.log('Frontend received downloads:', response.data);
         setDownloads(response.data);
       } catch (error) {
         console.error('Error fetching downloads:', error);
@@ -68,7 +69,7 @@ function Settings() {
         <div className="text-center mb-8">
           <div className="relative inline-block mb-4 cursor-pointer" onClick={() => setIsChangeProfileImageModalOpen(true)}>
             <img 
-              src={user?.profileImage ? `http://localhost:5000${user.profileImage}` : 'https://via.placeholder.com/150'} 
+              src={user?.profileImage ? `http://localhost:5002${user.profileImage}` : 'https://via.placeholder.com/150'} 
               alt="Profile" 
               className="w-24 h-24 rounded-full object-cover mx-auto"
             />
@@ -118,11 +119,11 @@ function Settings() {
                 {downloads.length > 0 ? (
                   <ul>
                     {downloads.map((item) => (
-                      <li key={item._id} className="text-gray-800 dark:text-white py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">{item.book.title}</li>
+                      <li key={item._id} className="text-gray-800 dark:text-white py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">{item.book ? item.book.title : 'Unknown Book'}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-gray-500 dark:text-gray-400">No downloaded books yet.</p>
+                  <p className="text-gray-500 dark:text-gray-400">{t('No books downloaded')}</p>
                 )}
               </div>
             )}
@@ -145,9 +146,9 @@ function Settings() {
             {isLanguagesOpen && (
               <div className="p-4">
                 <ul>
-                  <li className="text-gray-800 dark:text-white py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0 cursor-pointer" onClick={() => handleLanguageSelect('en')}>{t('English')}</li>
-                  <li className="text-gray-800 dark:text-white py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0 cursor-pointer" onClick={() => handleLanguageSelect('hi')}>{t('Hindi')}</li>
-                  <li className="text-gray-800 dark:text-white py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0 cursor-pointer" onClick={() => handleLanguageSelect('ml')}>{t('Malayalam')}</li>
+                  <li key="en" className="text-gray-800 dark:text-white py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0 cursor-pointer" onClick={() => handleLanguageSelect('en')}>{i18n.t('language_en', { lng: 'en' })}</li>
+                  <li key="hi" className="text-gray-800 dark:text-white py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0 cursor-pointer" onClick={() => handleLanguageSelect('hi')}>{i18n.t('language_hi', { lng: 'hi' })}</li>
+                  <li key="ml" className="text-gray-800 dark:text-white py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0 cursor-pointer" onClick={() => handleLanguageSelect('ml')}>{i18n.t('language_ml', { lng: 'ml' })}</li>
                 </ul>
               </div>
             )}

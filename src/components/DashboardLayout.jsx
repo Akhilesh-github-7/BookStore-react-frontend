@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaHome, FaCompass, FaBook, FaStar, FaHeart, FaCog, FaSignOutAlt, FaUserCircle, FaBars, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import EditProfileModal from './EditProfileModal';
 import ChangeProfileImageModal from './ChangeProfileImageModal';
 import { useTranslation } from 'react-i18next';
+import API from '../api';
+import BookStoreLogo from '../assets/images/BookStore.png';
 
 function DashboardLayout({ children }) {
   const { t } = useTranslation();
@@ -14,8 +16,21 @@ function DashboardLayout({ children }) {
   const [isChangeProfileImageModalOpen, setIsChangeProfileImageModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [genres, setGenres] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const response = await API.get('/public-books/genres');
+        setGenres(response.data);
+      } catch (error) {
+        console.error('Error fetching genres:', error);
+      }
+    };
+    fetchGenres();
+  }, []);
 
   const handleCategoryChange = (e) => {
     const category = e.target.value;
@@ -31,7 +46,17 @@ function DashboardLayout({ children }) {
       navigate(`/search?q=${searchQuery}`);
     }
   };
-  const { user, updateUsername, updateProfileImage } = useAuth();
+  const { user, updateProfile, updateProfileImage } = useAuth();
+
+  const handleUpdateProfile = async (profileData) => {
+    try {
+      const result = await updateProfile(profileData);
+      return result;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      return { success: false, message: error.message };
+    }
+  };
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -57,7 +82,10 @@ function DashboardLayout({ children }) {
         {/* Sidebar */}
         <aside className={`w-64 bg-white border-r border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-4 flex-col fixed inset-y-0 left-0 z-30 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:fixed md:translate-x-0 md:flex transition-transform duration-200 ease-in-out`}>
           <div className="flex justify-between items-center mb-4">
-            <div className="text-2xl font-bold text-gray-800 dark:text-white">{t('BOOK STORE')}</div>
+            <div className="flex items-center text-2xl font-bold text-cyan-500 dark:text-cyan-400">
+              <img src={BookStoreLogo} alt="BookStore Logo" className="h-8 w-8 mr-2" />
+              {t('BOOK STORE')}
+            </div>
             <button onClick={toggleSidebar} className="md:hidden p-2 text-gray-600 hover:text-rose-500 dark:hover:bg-gray-700">
               <FaTimes className="text-xl" />
             </button>
@@ -122,7 +150,10 @@ function DashboardLayout({ children }) {
               <button onClick={toggleSidebar} className="md:hidden p-2 text-gray-600 hover:text-rose-500 dark:hover:text-rose-400">
                 <FaBars className="text-xl" />
               </button>
-              <div className="text-2xl font-bold text-gray-800 dark:text-white ml-2 md:ml-0">{t('BOOK STORE')}</div>
+              <div className="flex items-center text-2xl font-bold text-cyan-500 dark:text-cyan-400 ml-2 md:ml-0">
+              <img src={BookStoreLogo} alt="BookStore Logo" className="h-8 w-8 mr-2" />
+              {t('BOOK STORE')}
+            </div>
             </div>
             <div className="hidden md:flex items-center flex-grow justify-center gap-4">
               <input
@@ -135,11 +166,9 @@ function DashboardLayout({ children }) {
               />
               <select className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200" value={selectedCategory} onChange={handleCategoryChange}>
                 <option value="">{t('Categories')}</option>
-                <option value="Fiction">{t('Fiction')}</option>
-                <option value="Non-Fiction">{t('Non-Fiction')}</option>
-                <option value="Science">{t('Science')}</option>
-                <option value="Fantasy">{t('Fantasy')}</option>
-                <option value="History">{t('History')}</option>
+                {genres.map((genre) => (
+                  <option key={genre} value={genre}>{t(genre)}</option>
+                ))}
               </select>
               <button className="bg-rose-500 text-white px-4 py-2 rounded-lg hover:bg-rose-600" onClick={handleSearch}>
                 {t('Search')}
@@ -148,7 +177,7 @@ function DashboardLayout({ children }) {
             <div className="relative flex items-center space-x-4">
               <button onClick={toggleProfileMenu} className="flex items-center space-x-2 focus:outline-none">
                 {user?.profileImage ? (
-                <img src={`http://localhost:5000${user.profileImage}`} alt="Profile" className="h-8 w-8 rounded-full object-cover" />
+                <img src={`http://localhost:5002${user.profileImage}`} alt="Profile" className="h-8 w-8 rounded-full object-cover" />
               ) : (
                 <FaUserCircle className="text-gray-600 text-2xl" />
               )}
@@ -173,7 +202,9 @@ function DashboardLayout({ children }) {
           isOpen={isEditProfileModalOpen}
           onClose={() => setIsEditProfileModalOpen(false)}
           currentUsername={user?.username || ''}
-          onUpdateUsername={updateUsername}
+          currentCity={user?.city || ''}
+          currentCountry={user?.country || ''}
+          onUpdateProfile={handleUpdateProfile}
         />
         <ChangeProfileImageModal
           isOpen={isChangeProfileImageModalOpen}

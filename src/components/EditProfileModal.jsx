@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next';
 
 function EditProfileModal({ isOpen, onClose, currentUsername, currentCity, currentCountry, onUpdateProfile }) {
   const { t } = useTranslation();
-  const [newUsername, setNewUsername] = useState(currentUsername);
-  const [newCity, setNewCity] = useState(currentCity);
-  const [newCountry, setNewCountry] = useState(currentCountry);
+  const [newUsername, setNewUsername] = useState(currentUsername || '');
+  const [newCity, setNewCity] = useState(currentCity || '');
+  const [newCountry, setNewCountry] = useState(currentCountry || '');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
