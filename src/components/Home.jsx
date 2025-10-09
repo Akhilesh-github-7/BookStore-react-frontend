@@ -163,7 +163,7 @@ function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pb-4">
           {(showAllTrending ? trendingBooks : trendingBooks.slice(0, 4)).map((book) => (
             <div key={book._id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 cursor-pointer" onClick={() => openModal(book)}>
-              <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `http://localhost:5002/${book.coverImageURL}` : `http://localhost:5002${book.coverImageURL}`) : `https://via.placeholder.com/150x200?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="aspect-[3/4] w-full object-cover rounded-lg mb-2" />
+              <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${book.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${book.coverImageURL}`) : `https://via.placeholder.com/150x200?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="aspect-[3/4] w-full object-cover rounded-lg mb-2" />
               <p className="text-sm font-semibold text-gray-800 dark:text-white">{book.title}</p>
               <p className="text-xs text-gray-600 dark:text-gray-300">{book.author}</p>
               <div className="flex items-center text-yellow-500 text-xs mt-1">
@@ -192,7 +192,7 @@ function Home() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pb-4">
           {(showAllNewlyAdded ? newlyAddedBooks : newlyAddedBooks.slice(0, 4)).map((book) => (
             <div key={book._id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 cursor-pointer" onClick={() => openModal(book)}>
-              <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `http://localhost:5002/${book.coverImageURL}` : `http://localhost:5002${book.coverImageURL}`) : `https://via.placeholder.com/100x150?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="aspect-[3/4] w-full object-cover rounded-lg mb-2" />
+              <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${book.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${book.coverImageURL}`) : `https://via.placeholder.com/100x150?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="aspect-[3/4] w-full object-cover rounded-lg mb-2" />
               <p className="text-xs font-semibold text-gray-800 dark:text-white">{book.title}</p>
               <p className="text-xs text-gray-600 dark:text-gray-300">{book.author}</p>
             </div>
@@ -215,7 +215,7 @@ function Home() {
           {(showAllHistory ? history : history.slice(0, 4)).map((item) => (
             item.book && (
             <div key={item.book._id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 cursor-pointer" onClick={() => openModal(item.book)}>
-              <img src={item.book.coverImageURL ? (item.book.coverImageURL.startsWith('public/uploads/') ? `http://localhost:5002/${item.book.coverImageURL}` : `http://localhost:5002${item.book.coverImageURL}`) : `https://via.placeholder.com/100x150?text=${item.book.title.replace(/\s/g, '+')}`} alt={item.book.title} className="aspect-[3/4] w-full object-cover rounded-lg mb-2" />
+              <img src={item.book.coverImageURL ? (item.book.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${item.book.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${item.book.coverImageURL}`) : `https://via.placeholder.com/100x150?text=${item.book.title.replace(/\s/g, '+')}`} alt={item.book.title} className="aspect-[3/4] w-full object-cover rounded-lg mb-2" />
               <p className="text-xs font-semibold text-gray-800 dark:text-white">{item.book.title}</p>
             </div>
             )
@@ -237,7 +237,7 @@ function Home() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pb-4">
           {(showAllFavorites ? favorites : favorites.slice(0, 4)).map((book) => (
             <div key={book._id} className="relative bg-white dark:bg-gray-800 rounded-lg shadow p-3 cursor-pointer" onClick={() => openModal(book)}>
-              <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `http://localhost:5002/${book.coverImageURL}` : `http://localhost:5002${book.coverImageURL}`) : `https://via.placeholder.com/100x150?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="aspect-[3/4] w-full object-cover rounded-lg mb-2" />
+              <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${book.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${book.coverImageURL}`) : `https://via.placeholder.com/100x150?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="aspect-[3/4] w-full object-cover rounded-lg mb-2" />
               <div className="absolute top-2 right-2 bg-white dark:bg-gray-700 rounded-full p-1.5 shadow-md">
                 <FaHeart className="text-rose-500" />
               </div>

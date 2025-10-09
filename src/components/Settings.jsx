@@ -69,7 +69,7 @@ function Settings() {
         <div className="text-center mb-8">
           <div className="relative inline-block mb-4 cursor-pointer" onClick={() => setIsChangeProfileImageModalOpen(true)}>
             <img 
-              src={user?.profileImage ? `http://localhost:5002${user.profileImage}` : 'https://via.placeholder.com/150'} 
+              src={user?.profileImage ? `https://bookstore-backend-3ujv.onrender.com${user.profileImage}` : 'https://via.placeholder.com/150'} 
               alt="Profile" 
               className="w-24 h-24 rounded-full object-cover mx-auto"
             />

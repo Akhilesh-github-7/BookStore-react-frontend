@@ -39,7 +39,7 @@ const BookDetailModal = ({ book, onClose, handleAddToFavorites, favoritedBooks =
 
         {/* Book Information */}
         <div className="flex flex-col md:flex-row mb-3">
-          <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `http://localhost:5002/${book.coverImageURL}` : `http://localhost:5002${book.coverImageURL}`) : `https://via.placeholder.com/150x200?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="w-28 h-auto object-cover rounded-lg mb-3 md:mb-0 md:mr-3" />
+          <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${book.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${book.coverImageURL}`) : `https://via.placeholder.com/150x200?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="w-28 h-auto object-cover rounded-lg mb-3 md:mb-0 md:mr-3" />
           <div className="flex-1">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">{book.title}</h2>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">by {book.author}</p>
@@ -64,7 +64,7 @@ const BookDetailModal = ({ book, onClose, handleAddToFavorites, favoritedBooks =
                 className="bg-orange-500 text-white font-bold py-1 px-3 rounded-lg hover:bg-orange-600 flex items-center text-xs"
                 onClick={() => {
                   if (book.filePath) {
-                    const downloadUrl = `http://localhost:5002${book.filePath}`;
+                    const downloadUrl = `https://bookstore-backend-3ujv.onrender.com${book.filePath}`;
                     const link = document.createElement('a');
                     link.href = downloadUrl;
                     link.setAttribute('download', book.title + '.pdf'); // Suggests a filename
@@ -102,7 +102,7 @@ const BookDetailModal = ({ book, onClose, handleAddToFavorites, favoritedBooks =
                 } catch (err) {
                   console.error('Error adding to history:', err);
                 }
-                window.open(`http://localhost:5002${book.filePath}`, '_blank');
+                window.open(`https://bookstore-backend-3ujv.onrender.com${book.filePath}`, '_blank');
               }
             }}
           >
@@ -130,7 +130,7 @@ const BookDetailModal = ({ book, onClose, handleAddToFavorites, favoritedBooks =
             {otherBooksByAuthor.length > 0 ? (
               otherBooksByAuthor.map((b) => (
                 <div key={b._id}>
-                  <img src={b.coverImageURL ? (b.coverImageURL.startsWith('public/uploads/') ? `http://localhost:5002/${b.coverImageURL}` : `http://localhost:5002${b.coverImageURL}`) : `https://via.placeholder.com/100x150?text=${b.title.replace(/\s/g, '+')}`} alt={b.title} className="w-full h-auto object-cover rounded-lg" />
+                  <img src={b.coverImageURL ? (b.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${b.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${b.coverImageURL}`) : `https://via.placeholder.com/100x150?text=${b.title.replace(/\s/g, '+')}`} alt={b.title} className="w-full h-auto object-cover rounded-lg" />
                   <p className="text-xs font-semibold text-gray-800 dark:text-white mt-1">{b.title}</p>
                 </div>
               ))

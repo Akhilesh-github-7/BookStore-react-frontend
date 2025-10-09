@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://localhost:5002/api', // Backend URL
+  baseURL: 'https://bookstore-backend-3ujv.onrender.com/api', // Backend URL
 });
 
 API.interceptors.request.use((req) => {

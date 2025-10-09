@@ -177,7 +177,7 @@ function DashboardLayout({ children }) {
             <div className="relative flex items-center space-x-4">
               <button onClick={toggleProfileMenu} className="flex items-center space-x-2 focus:outline-none">
                 {user?.profileImage ? (
-                <img src={`http://localhost:5002${user.profileImage}`} alt="Profile" className="h-8 w-8 rounded-full object-cover" />
+                <img src={`https://bookstore-backend-3ujv.onrender.com${user.profileImage}`} alt="Profile" className="h-8 w-8 rounded-full object-cover" />
               ) : (
                 <FaUserCircle className="text-gray-600 text-2xl" />
               )}
