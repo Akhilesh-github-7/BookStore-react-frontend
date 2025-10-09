@@ -6,6 +6,7 @@ import EditProfileModal from './EditProfileModal';
 import ChangeProfileImageModal from './ChangeProfileImageModal';
 import { useTranslation } from 'react-i18next';
 import API from '../api';
+import BookStoreLogo from '../assets/images/BookStore.png';
 
 function DashboardLayout({ children }) {
   const { t } = useTranslation();
@@ -81,7 +82,10 @@ function DashboardLayout({ children }) {
         {/* Sidebar */}
         <aside className={`w-64 bg-white border-r border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-4 flex-col fixed inset-y-0 left-0 z-30 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:fixed md:translate-x-0 md:flex transition-transform duration-200 ease-in-out`}>
           <div className="flex justify-between items-center mb-4">
-            <div className="text-2xl font-bold text-gray-800 dark:text-white">{t('BOOK STORE')}</div>
+            <div className="flex items-center text-2xl font-bold text-cyan-500">
+              <img src={BookStoreLogo} alt="BookStore Logo" className="h-8 w-8 mr-2" />
+              {t('BOOK STORE')}
+            </div>
             <button onClick={toggleSidebar} className="md:hidden p-2 text-gray-600 hover:text-rose-500 dark:hover:bg-gray-700">
               <FaTimes className="text-xl" />
             </button>
@@ -146,7 +150,7 @@ function DashboardLayout({ children }) {
               <button onClick={toggleSidebar} className="md:hidden p-2 text-gray-600 hover:text-rose-500 dark:hover:text-rose-400">
                 <FaBars className="text-xl" />
               </button>
-              <div className="text-2xl font-bold text-gray-800 dark:text-white ml-2 md:ml-0">{t('BOOK STORE')}</div>
+              <div className="text-2xl font-bold text-cyan-500 ml-2 md:ml-0">{t('BOOK STORE')}</div>
             </div>
             <div className="hidden md:flex items-center flex-grow justify-center gap-4">
               <input
