@@ -64,7 +64,7 @@ const BookDetailModal = ({ book, onClose, handleAddToFavorites, favoritedBooks =
                 className="bg-orange-500 text-white font-bold py-1 px-3 rounded-lg hover:bg-orange-600 flex items-center text-xs"
                 onClick={() => {
                   if (book.filePath) {
-                    const downloadUrl = `https://bookstore-backend-3ujv.onrender.com/public${book.filePath}`;
+                    const downloadUrl = `https://bookstore-backend-3ujv.onrender.com/public${book.filePath}?title=${encodeURIComponent(book.title)}`;
                     const link = document.createElement('a');
                     link.href = downloadUrl;
                     link.setAttribute('download', book.title + '.pdf'); // Suggests a filename
