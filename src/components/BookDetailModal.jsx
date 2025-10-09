@@ -29,9 +29,7 @@ const BookDetailModal = ({ book, onClose, handleAddToFavorites, favoritedBooks =
       <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl w-11/12 md:w-3/4 lg:max-w-lg p-3 relative max-h-[80vh] overflow-hidden">
         {/* Header */}
         <div className="flex justify-between items-center mb-3">
-          <button onClick={onClose} className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-            <FaArrowLeft size={18} />
-          </button>
+          
           <button onClick={onClose} className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white absolute top-3 right-3">
             <FaTimes size={18} />
           </button>
