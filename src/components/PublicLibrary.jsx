@@ -5,6 +5,7 @@ import DashboardLayout from './DashboardLayout';
 import { FaStar, FaHeart } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import BookDetailModal from './BookDetailModal';
+import SkeletonLoader from './SkeletonLoader';
 
 function PublicLibrary() {
   const { t } = useTranslation();
@@ -136,7 +137,16 @@ function PublicLibrary() {
   console.log('Type of handleAddToFavorites before render:', typeof handleAddToFavorites);
 
   if (loading) {
-    return <DashboardLayout><div className="text-center text-xl mt-10">{t('Loading public library...')}</div></DashboardLayout>;
+    return (
+      <DashboardLayout>
+        <div className="p-4 sm:p-6 md:p-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-6">{t('Public Library')}</h1>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <SkeletonLoader type="card" count={booksPerPage} />
+          </div>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   if (error) {

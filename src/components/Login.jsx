@@ -3,24 +3,28 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LoginBg from '../assets/images/LoginBg.jpg';
 import { useTranslation } from 'react-i18next';
+import LoadingSpinner from './LoadingSpinner';
 
 function Login() {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     const result = await login(email, password);
     if (result.success) {
       navigate('/home'); // Redirect to home page on successful login
     } else {
       setError(result.message || t('Failed to login.'));
     }
+    setLoading(false);
   };
 
   return (
@@ -41,6 +45,7 @@ function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
           <div className="mb-6">
@@ -53,6 +58,7 @@ function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
           {error && <p className="text-red-300 dark:text-red-400 text-xs italic mb-4 text-center">{error}</p>}
@@ -60,8 +66,9 @@ function Login() {
             <button
               type="submit"
               className="bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-300 ease-in-out w-full"
+              disabled={loading}
             >
-              {t('LOGIN')}
+              {loading ? <LoadingSpinner /> : t('LOGIN')}
             </button>
           </div>
           <div className="flex justify-between text-sm mb-6">

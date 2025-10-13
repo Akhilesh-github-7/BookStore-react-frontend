@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import DashboardLayout from './DashboardLayout';
 import { FaStar, FaHeart } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
+import SkeletonLoader from './SkeletonLoader';
 
 function PersonalLibrary() {
   const { t } = useTranslation();
@@ -187,7 +188,16 @@ function PersonalLibrary() {
   };
 
   if (loading) {
-    return <DashboardLayout><div className="text-center text-xl mt-10">{t('Loading personal library...')}</div></DashboardLayout>;
+    return (
+      <DashboardLayout>
+        <div className="p-4 sm:p-6 md:p-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-6">{t('Books')}</h1>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <SkeletonLoader type="card" count={booksPerPage} />
+          </div>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   if (error) {
