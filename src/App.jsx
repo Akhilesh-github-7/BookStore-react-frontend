@@ -26,7 +26,7 @@ function AppContent() {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-[100dvh] flex flex-col">
       {loading && <LoadingSpinner />}
 
       <main className="flex-grow">
