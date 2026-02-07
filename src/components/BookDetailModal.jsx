@@ -1,10 +1,30 @@
 
-import React, { useState, useEffect } from 'react';
-import { FaArrowLeft, FaStar, FaHeart, FaEyeSlash, FaBookOpen, FaDownload, FaTimes } from 'react-icons/fa';
+import React, { useState, useEffect, useMemo } from 'react';
+import { FaStar, FaHeart, FaBookOpen, FaDownload, FaTimes, FaCalendarAlt, FaUsers } from 'react-icons/fa';
 import API from '../api';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-const BookDetailModal = ({ book, onClose, handleAddToFavorites, favoritedBooks = [] }) => {
+const BookDetailModal = ({ book: initialBook, onClose, handleAddToFavorites, favoritedBooks = [] }) => {
+  const { t } = useTranslation();
+  const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
+  const [book, setBook] = useState(initialBook);
   const [otherBooksByAuthor, setOtherBooksByAuthor] = useState([]);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [isRating, setIsRating] = useState(false);
+
+  // Derive the user's existing rating from the book's ratings array
+  const userRating = useMemo(() => {
+    if (!book || !book.ratings || !currentUser) return 0;
+    const found = book.ratings.find(r => r.user === currentUser._id || r.user?._id === currentUser._id);
+    return found ? found.rating : 0;
+  }, [book, currentUser]);
+
+  useEffect(() => {
+    setBook(initialBook);
+  }, [initialBook]);
 
   useEffect(() => {
     const fetchOtherBooks = async () => {
@@ -12,8 +32,7 @@ const BookDetailModal = ({ book, onClose, handleAddToFavorites, favoritedBooks =
         try {
           const response = await API.get(`/public-books/author/${book.author}?excludeBookId=${book._id}`);
           setOtherBooksByAuthor(response.data);
-        } catch (err) {
-          console.error('Error fetching other books by author:', err);
+        } catch (error) {
           setOtherBooksByAuthor([]);
         }
       }
@@ -22,122 +41,181 @@ const BookDetailModal = ({ book, onClose, handleAddToFavorites, favoritedBooks =
     fetchOtherBooks();
   }, [book]);
 
+  const handleRate = async (rating) => {
+    setIsRating(true);
+    try {
+      const response = await API.post(`/public-books/${book._id}/rate`, { rating });
+      setBook(response.data); // Update local book state with new average
+    } catch (error) {
+      console.error('Error rating book:', error);
+    } finally {
+      setIsRating(false);
+    }
+  };
+
   if (!book) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-3">
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl w-11/12 md:w-3/4 lg:max-w-lg p-3 relative max-h-[80vh] overflow-hidden">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-3">
-          
-          <button onClick={onClose} className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white absolute top-3 right-3">
-            <FaTimes size={18} />
-          </button>
-        </div>
+  const isFavorited = favoritedBooks.includes(book._id);
 
-        {/* Book Information */}
-        <div className="flex flex-col md:flex-row mb-3">
-          <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${book.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${book.coverImageURL}`) : `https://via.placeholder.com/150x200?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="w-28 h-auto object-cover rounded-lg mb-3 md:mb-0 md:mr-3" />
-          <div className="flex-1">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{book.title}</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">by {book.author}</p>
-            <div className="flex items-center mb-1">
-              <div className="flex text-yellow-500">
-                {[...Array(5)].map((_, i) => (
-                  <FaStar key={i} className={i < Math.round(book.averageRating) ? 'text-yellow-400' : 'text-gray-300'} />
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fade-in">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-2xl relative max-h-[90dvh] overflow-hidden flex flex-col transform transition-all scale-100 shadow-indigo-500/10 border border-white/20 dark:border-slate-800">
+        
+        {/* Close Button */}
+        <button 
+          onClick={onClose} 
+          className="absolute top-5 right-5 z-10 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+        >
+          <FaTimes size={20} />
+        </button>
+
+        <div className="overflow-y-auto p-6 sm:p-8 custom-scrollbar">
+          {/* Main Info */}
+          <div className="flex flex-col md:flex-row gap-8 mb-8">
+            {/* Book Cover */}
+            <div className="w-full md:w-48 shrink-0">
+              <div className="relative group rounded-2xl overflow-hidden shadow-xl ring-1 ring-black/5 dark:ring-white/10">
+                <img 
+                  src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${book.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${book.coverImageURL}`) : `https://via.placeholder.com/150x200?text=${book.title.replace(/\s/g, '+')}`} 
+                  alt={book.title} 
+                  className="w-full h-auto aspect-[3/4] object-cover" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </div>
+            </div>
+
+            {/* Book Details */}
+            <div className="flex-1">
+              <div className="mb-4">
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-1 leading-tight">{book.title}</h2>
+                <p className="text-lg font-medium text-indigo-600 dark:text-indigo-400">by {book.author}</p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-4 mb-6">
+                {/* Interactive Rating */}
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-100 dark:border-slate-700">
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          disabled={isRating}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          onClick={() => handleRate(star)}
+                          className="focus:outline-none transition-transform active:scale-125"
+                        >
+                          <FaStar 
+                            size={16} 
+                            className={`transition-colors ${
+                              (hoverRating || userRating || Math.round(book.averageRating)) >= star 
+                                ? (userRating >= star || hoverRating >= star ? 'text-amber-400 fill-current' : 'text-amber-400/40 fill-current') 
+                                : 'text-slate-300 dark:text-slate-600'
+                            }`} 
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    <span className="text-sm font-black text-slate-700 dark:text-slate-200 ml-3">
+                      {book.averageRating?.toFixed(1) || '0.0'}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter ml-3">
+                    {book.numberOfRatings || 0} {t('Community Ratings')}
+                  </p>
+                </div>
+
+                <div className="flex items-center text-slate-500 dark:text-slate-400 text-sm">
+                  <FaCalendarAlt className="mr-2 opacity-70" />
+                  {new Date(book.createdAt).getFullYear()}
+                </div>
+
+                <div className="flex items-center text-slate-500 dark:text-slate-400 text-sm">
+                  <FaUsers className="mr-2 opacity-70" />
+                  {book.uniqueReadersCount || 0} {t('Readers')}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-6">
+                {book.genre && Array.isArray(book.genre) && book.genre.map((g, index) => (
+                  <span key={index} className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
+                    {g}
+                  </span>
                 ))}
               </div>
-              <span className="text-gray-600 dark:text-gray-300 ml-2 text-xs">({book.averageRating.toFixed(1)})</span>
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Published on {new Date(book.createdAt).toLocaleDateString()}</p>
-            <div className="flex flex-wrap gap-1 mb-3">
-              {book.genre && Array.isArray(book.genre) && book.genre.map((g, index) => (
-                <span key={index} className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-semibold px-2 py-0.5 rounded-full">
-                  {g}
-                </span>
-              ))}
-            </div>
-            <div className="flex items-center">
-              <button
-                className="bg-orange-500 text-white font-bold py-1 px-3 rounded-lg hover:bg-orange-600 flex items-center text-xs"
-                onClick={() => {
-                  if (book.filePath) {
-                    const downloadUrl = `https://bookstore-backend-3ujv.onrender.com/public${book.filePath}?title=${encodeURIComponent(book.title)}`;
-                    const link = document.createElement('a');
-                    link.href = downloadUrl;
-                    link.setAttribute('download', book.title + '.pdf'); // Suggests a filename
-                    document.body.appendChild(link);
-                    link.click();
-                    link.remove();
-                  }
-                }}
-              >
-                <FaDownload className="mr-1" /> Download
-              </button>
-              <div className="ml-3 flex items-center">
-                <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-bold text-gray-800 dark:text-white">{book.uniqueReadersCount || 0}</span>
-                </div>
-                <span className="ml-1 text-xs text-gray-600 dark:text-gray-300">Readers</span>
+
+              <div className="flex gap-3">
+                <button
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg shadow-indigo-500/30 transition-all flex items-center justify-center gap-2"
+                  onClick={() => {
+                    if (book.filePath) {
+                      navigate(`/read/${book._id}`);
+                    }
+                  }}
+                >
+                  <FaBookOpen /> {t('Read Now')}
+                </button>
+                <button
+                  className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold p-2.5 rounded-xl transition-all border border-slate-200 dark:border-slate-700"
+                  onClick={() => {
+                    if (book.filePath) {
+                      const downloadUrl = `https://bookstore-backend-3ujv.onrender.com/public${book.filePath}?title=${encodeURIComponent(book.title)}`;
+                      const link = document.body.appendChild(document.createElement('a'));
+                      link.href = downloadUrl;
+                      link.download = `${book.title}.pdf`;
+                      link.click();
+                      link.remove();
+                    }
+                  }}
+                  title={t('Download PDF')}
+                >
+                  <FaDownload />
+                </button>
+                <button 
+                  className={`p-2.5 rounded-xl transition-all border ${
+                    isFavorited 
+                      ? 'bg-red-50 border-red-100 text-red-500 dark:bg-red-900/20 dark:border-red-900/50' 
+                      : 'bg-slate-100 border-slate-200 text-slate-400 dark:bg-slate-800 dark:border-slate-700 hover:text-red-500'
+                  }`}
+                  onClick={() => handleAddToFavorites(book._id)}
+                  title={isFavorited ? t('Remove from Favorites') : t('Add to Favorites')}
+                >
+                  <FaHeart className={isFavorited ? 'fill-current' : ''} />
+                </button>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Action Bar */}
-        <div className="flex justify-around items-center p-2 bg-gray-100 dark:bg-gray-800 rounded-lg mb-3">
-          <button className="flex flex-col items-center text-gray-600 dark:text-gray-300" onClick={() => handleAddToFavorites(book._id)}>
-            <FaHeart size={16} className={favoritedBooks.includes(book._id) ? 'text-red-500' : 'text-gray-600 dark:text-gray-300 hover:text-rose-500'} />
-            <span className="text-xs mt-1">Favorite</span>
-          </button>
-
-          <button
-            className="flex flex-col items-center text-gray-600 dark:text-gray-300 hover:text-rose-500"
-            onClick={async () => {
-              if (book.filePath) {
-                try {
-                  await API.post('/history', { bookId: book._id });
-                } catch (err) {
-                  console.error('Error adding to history:', err);
-                }
-                window.open(`https://bookstore-backend-3ujv.onrender.com${book.filePath}`, '_blank');
-              }
-            }}
-          >
-            <FaBookOpen size={16} />
-            <span className="text-xs mt-1">Read Online</span>
-          </button>
-        </div>
-
-        {/* Synopsis/Description */}
-        <div className="mb-3">
-          <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">Description</h3>
-          <p className="text-xs text-gray-600 dark:text-gray-400">
-            {book.summary || 'No description available.'}
-            <a href="#" className="text-rose-500 hover:underline ml-1">Read More</a>
-          </p>
-        </div>
-
-        {/* Other Books */}
-        <div className="mb-3">
-            <div className="flex justify-between items-center mb-1">
-                <h3 className="text-base font-semibold text-gray-900 dark:text-white">Other Books by this Author</h3>
-                <a href="#" className="text-rose-500 hover:underline text-xs">View All</a>
-            </div>
-          <div className="grid grid-cols-3 gap-2">
-            {otherBooksByAuthor.length > 0 ? (
-              otherBooksByAuthor.map((b) => (
-                <div key={b._id}>
-                  <img src={b.coverImageURL ? (b.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${b.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${b.coverImageURL}`) : `https://via.placeholder.com/100x150?text=${b.title.replace(/\s/g, '+')}`} alt={b.title} className="w-full h-auto object-cover rounded-lg" />
-                  <p className="text-xs font-semibold text-gray-800 dark:text-white mt-1">{b.title}</p>
-                </div>
-              ))
-            ) : (
-              <p className="text-xs text-gray-600 dark:text-gray-400 col-span-3">No Other Books by the Author</p>
-            )}
+          {/* Description */}
+          <div className="mb-10 bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3 flex items-center">
+              <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full mr-2"></span>
+              {t('Synopsis')}
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed italic">
+              "{book.summary || t('No description available.')}"
+            </p>
           </div>
-        </div>
 
+          {/* Other Books */}
+          {otherBooksByAuthor.length > 0 && (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('More by this Author')}</h3>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                {otherBooksByAuthor.map((b) => (
+                  <div key={b._id} className="group cursor-pointer">
+                    <div className="aspect-[3/4] rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 mb-2">
+                      <img src={b.coverImageURL ? (b.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${b.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${b.coverImageURL}`) : `https://via.placeholder.com/100x150?text=${b.title.replace(/\s/g, '+')}`} alt={b.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                    </div>
+                    <p className="text-[10px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 truncate leading-tight group-hover:text-indigo-600 transition-colors">{b.title}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

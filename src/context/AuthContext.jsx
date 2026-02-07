@@ -129,8 +129,35 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const changePassword = async (currentPassword, newPassword) => {
+    setLoading(true);
+    try {
+      await API.put('/auth/password', { currentPassword, newPassword });
+      return { success: true };
+    } catch (error) {
+      console.error('Change password error:', error.response?.data?.message || error.message);
+      return { success: false, message: error.response?.data?.message || 'Failed to change password.' };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteAccount = async () => {
+    setLoading(true);
+    try {
+      await API.delete('/auth/profile');
+      logout();
+      return { success: true };
+    } catch (error) {
+      console.error('Delete account error:', error.response?.data?.message || error.message);
+      return { success: false, message: error.response?.data?.message || 'Failed to delete account.' };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateProfile, updateProfileImage }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateProfile, updateProfileImage, changePassword, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );

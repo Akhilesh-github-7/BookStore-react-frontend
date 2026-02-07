@@ -13,9 +13,13 @@ export default {
           '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-5px)' },
           '20%, 40%, 60%, 80%': { transform: 'translateX(5px)' },
         },
+        shimmer: {
+          '100%': { transform: 'translateX(100%)' },
+        },
       },
       animation: {
         shake: 'shake 0.5s ease-in-out',
+        shimmer: 'shimmer 2s infinite',
       },
     },
   },

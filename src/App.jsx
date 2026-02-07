@@ -9,6 +9,7 @@ import SearchResults from './components/SearchResults';
 import Recommendations from './components/Recommendations';
 import Favorites from './components/Favorites';
 import Settings from './components/Settings';
+import BookReader from './components/BookReader';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -24,6 +25,7 @@ function App() {
 function AppContent() {
   const { user, logout, loading } = useAuth();
   const location = useLocation();
+  const isReadingPage = location.pathname.startsWith('/read/');
 
   return (
     <div className="min-h-[100dvh] flex flex-col">
@@ -34,6 +36,7 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/public-library" element={<PublicLibrary />} />
+          <Route path="/read/:bookId" element={<ProtectedRoute><BookReader /></ProtectedRoute>} />
           <Route path="/" element={<Login />} />
           <Route
             path="/home"
@@ -59,9 +62,11 @@ function AppContent() {
         </Routes>
       </main>
 
-      <footer className="bg-gray-800 p-4 text-white text-center">
-        <p>&copy; 2025 BookStore App</p>
-      </footer>
+      {!isReadingPage && (
+        <footer className="bg-gray-800 p-4 text-white text-center">
+          <p>&copy; 2025 BookStore App</p>
+        </footer>
+      )}
     </div>
   );
 }

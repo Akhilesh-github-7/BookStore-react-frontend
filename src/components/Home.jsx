@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FaStar, FaHeart } from 'react-icons/fa';
+import { FaArrowRight } from 'react-icons/fa';
 import DashboardLayout from './DashboardLayout';
 import API from '../api';
 import { useTranslation } from 'react-i18next';
-import BookDetailModal from './BookDetailModal'; // Import the modal component
+import BookDetailModal from './BookDetailModal';
 import { useSocket } from '../context/SocketContext';
 import SkeletonLoader from './SkeletonLoader';
+import { useAuth } from '../context/AuthContext';
+import BookCard from './BookCard';
 
 function Home() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const socket = useSocket();
   const [trendingBooks, setTrendingBooks] = useState([]);
   const [showAllTrending, setShowAllTrending] = useState(false);
@@ -25,7 +28,7 @@ function Home() {
 
   const fetchAllNewlyAddedBooks = async () => {
     try {
-      const response = await API.get('/public-books?sortBy=createdAt'); // Fetch all without limit
+      const response = await API.get('/public-books?sortBy=createdAt');
       setNewlyAddedBooks(response.data.books);
       setShowAllNewlyAdded(true);
     } catch (err) {
@@ -35,7 +38,7 @@ function Home() {
 
   const fetchAllTrendingBooks = async () => {
     try {
-      const response = await API.get('/personal-books/trending'); // Fetch all without limit
+      const response = await API.get('/personal-books/trending');
       setTrendingBooks(response.data);
       setShowAllTrending(true);
     } catch (err) {
@@ -45,7 +48,7 @@ function Home() {
 
   const fetchAllHistory = async () => {
     try {
-      const response = await API.get('/history'); // Fetch all without limit
+      const response = await API.get('/history');
       setHistory(response.data);
       setShowAllHistory(true);
     } catch (err) {
@@ -55,7 +58,7 @@ function Home() {
 
   const fetchAllFavorites = async () => {
     try {
-      const response = await API.get('/favorites'); // Fetch all without limit
+      const response = await API.get('/favorites');
       setFavorites(response.data);
       setShowAllFavorites(true);
     } catch (err) {
@@ -67,10 +70,10 @@ function Home() {
     const fetchData = async () => {
       try {
         const [trendingRes, newlyAddedRes, historyRes, favoritesRes] = await Promise.all([
-          API.get('/personal-books/trending?limit=4'), // Initial limit for trending
-          API.get('/public-books?sortBy=createdAt&limit=4'), // Initial limit for newly added
-          API.get('/history?limit=4'), // Initial limit for history
-          API.get('/favorites?limit=4') // Initial limit for favorites
+          API.get('/personal-books/trending?limit=4'),
+          API.get('/public-books?sortBy=createdAt&limit=4'),
+          API.get('/history?limit=4'),
+          API.get('/favorites?limit=4')
         ]);
         setTrendingBooks(trendingRes.data);
         setNewlyAddedBooks(newlyAddedRes.data.books);
@@ -86,34 +89,16 @@ function Home() {
     fetchData();
 
     socket.on('rating_updated', (updatedBook) => {
-      setTrendingBooks((prevBooks) =>
-        prevBooks.map((book) =>
-          book._id === updatedBook._id ? updatedBook : book
-        )
-      );
-      setNewlyAddedBooks((prevBooks) =>
-        Array.isArray(prevBooks) ? prevBooks.map((book) =>
-          book._id === updatedBook._id ? updatedBook : book
-        ) : prevBooks
-      );
+      const updateBooks = (books) => Array.isArray(books) ? books.map(book => book._id === updatedBook._id ? updatedBook : book) : books;
+      setTrendingBooks(prev => updateBooks(prev));
+      setNewlyAddedBooks(prev => updateBooks(prev));
     });
 
     socket.on('readers_count_updated', (updatedBook) => {
-      setTrendingBooks((prevBooks) =>
-        prevBooks.map((book) =>
-          book._id === updatedBook._id ? updatedBook : book
-        )
-      );
-      setNewlyAddedBooks((prevBooks) =>
-        Array.isArray(prevBooks) ? prevBooks.map((book) =>
-          book._id === updatedBook._id ? updatedBook : book
-        ) : prevBooks
-      );
-      setHistory((prevHistory) =>
-        prevHistory.map((item) =>
-          item.book && item.book._id === updatedBook._id ? { ...item, book: updatedBook } : item
-        )
-      );
+      const updateBooks = (books) => Array.isArray(books) ? books.map(book => book._id === updatedBook._id ? updatedBook : book) : books;
+      setTrendingBooks(prev => updateBooks(prev));
+      setNewlyAddedBooks(prev => updateBooks(prev));
+      setHistory(prev => prev.map(item => item.book && item.book._id === updatedBook._id ? { ...item, book: updatedBook } : item));
     });
 
     return () => {
@@ -123,11 +108,8 @@ function Home() {
   }, [socket]);
 
   const handleAddToFavorites = async (bookId) => {
-    // Optimistic UI update
     setFavorites((prevFavorites) => {
-      if (prevFavorites.some(book => book._id === bookId)) {
-        return prevFavorites;
-      }
+      if (prevFavorites.some(book => book._id === bookId)) return prevFavorites;
       const bookToAdd = trendingBooks.find(book => book._id === bookId) || newlyAddedBooks.find(book => book._id === bookId) || history.find(item => item.book._id === bookId)?.book;
       return bookToAdd ? [...prevFavorites, bookToAdd] : prevFavorites;
     });
@@ -135,7 +117,6 @@ function Home() {
     try {
       await API.post('/favorites', { bookId });
     } catch (err) {
-      // Revert UI update on error
       setFavorites((prevFavorites) => prevFavorites.filter(book => book._id !== bookId));
       console.error('Error adding book to favorites:', err);
     }
@@ -151,124 +132,171 @@ function Home() {
     setIsModalOpen(false);
   };
 
+  const SectionHeader = ({ title, showAll, onToggle, hasData }) => (
+    <div className="flex justify-between items-end mb-6 border-b border-slate-200 dark:border-slate-800 pb-2">
+      <h3 className="text-2xl font-bold text-slate-800 dark:text-white leading-none relative">
+        {title}
+        <span className="absolute -bottom-2.5 left-0 w-1/3 h-1 bg-gradient-to-r from-indigo-600 to-blue-500 rounded-full"></span>
+      </h3>
+      {hasData && (
+        <button 
+          onClick={onToggle} 
+          className="group flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-700 dark:hover:text-indigo-400 transition-colors"
+        >
+          {showAll ? t('Show Less') : t('View All')}
+          <FaArrowRight className={`ml-2 transform transition-transform duration-300 ${showAll ? 'rotate-180' : 'group-hover:translate-x-1'}`} />
+        </button>
+      )}
+    </div>
+  );
+
+  const EmptyState = ({ message }) => (
+    <div className="flex flex-col items-center justify-center py-12 text-center bg-white dark:bg-slate-800 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+      <p className="text-slate-500 dark:text-slate-400 font-medium">{message}</p>
+    </div>
+  );
+
+  const GridContainer = ({ children }) => (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-6">
+      {children}
+    </div>
+  );
+
+  const renderBookGrid = (books, showAll, limit) => {
+    const displayBooks = showAll ? books : books.slice(0, limit);
+    return (
+      <GridContainer>
+        {displayBooks.map((book) => (
+          <BookCard 
+            key={book._id} 
+            book={book} 
+            onClick={openModal} 
+            isFavorite={favorites.some(fav => fav._id === book._id)}
+          />
+        ))}
+      </GridContainer>
+    );
+  };
+
   return (
     <DashboardLayout>
+      {/* Hero Section */}
+      <div className="relative mb-10 p-8 rounded-2xl bg-gradient-to-r from-slate-900 to-indigo-900 text-white overflow-hidden shadow-2xl">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-600/20 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
+        
+        <div className="relative z-10 max-w-2xl">
+          <h1 className="text-3xl sm:text-4xl font-extrabold mb-3 tracking-tight">
+            {t('Welcome back')}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-blue-200">{user?.username || 'Reader'}</span>! 👋
+          </h1>
+          <p className="text-slate-200 text-lg mb-6 leading-relaxed">
+            {t('Discover your next favorite story among thousands of books. What will you read today?')}
+          </p>
+          <div className="flex gap-4">
+            <Link to="/public-library" className="px-6 py-2.5 bg-white text-slate-900 font-bold rounded-xl shadow-lg hover:shadow-xl hover:bg-slate-50 transition-all transform hover:-translate-y-0.5">
+              {t('Explore Library')}
+            </Link>
+            <Link to="/personal-library" className="px-6 py-2.5 bg-indigo-700/50 backdrop-blur-md border border-white/20 text-white font-semibold rounded-xl hover:bg-indigo-700/70 transition-all">
+              {t('My Collection')}
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Trending Books */}
-      <section className="mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-gray-800 dark:text-white leading-none">{t('Trending Books')}</h3>
-          {!showAllTrending && (
-            <Link to="#" onClick={fetchAllTrendingBooks} className="text-rose-500 hover:underline leading-none">{t('View all')}</Link>
-          )}
-          {showAllTrending && (
-            <Link to="#" onClick={() => setShowAllTrending(false)} className="text-rose-500 hover:underline leading-none">{t('Show Less')}</Link>
-          )}
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pb-4">
-          {loading ? (
-            <SkeletonLoader type="card" count={5} />
-          ) : (
-            (showAllTrending ? trendingBooks : trendingBooks.slice(0, 4)).map((book) => (
-              <div key={book._id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 cursor-pointer" onClick={() => openModal(book)}>
-                <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${book.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${book.coverImageURL}`) : `https://via.placeholder.com/150x200?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="aspect-[3/4] w-full object-cover rounded-lg mb-2" />
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">{book.title}</p>
-                <p className="text-xs text-gray-600 dark:text-gray-300">{book.author}</p>
-                <div className="flex items-center text-yellow-500 text-xs mt-1">
-                  {[...Array(5)].map((_, i) => (
-                    <FaStar key={i} className={i < Math.round(book.averageRating) ? 'text-yellow-400' : 'text-gray-300'} />
-                  ))}
-                  ({book.averageRating ? book.averageRating.toFixed(1) : 'N/A'})
-                  <span className="ml-2 text-gray-600 dark:text-gray-300 text-xs">| {book.uniqueReadersCount || 0} {t('readers')}</span>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+      <section className="mb-12">
+        <SectionHeader 
+          title={t('Trending Now')} 
+          showAll={showAllTrending} 
+          onToggle={showAllTrending ? () => setShowAllTrending(false) : fetchAllTrendingBooks} 
+          hasData={trendingBooks.length > 0}
+        />
+        {loading ? (
+          <GridContainer>
+            <SkeletonLoader type="card" count={6} />
+          </GridContainer>
+        ) : trendingBooks.length > 0 ? (
+          renderBookGrid(trendingBooks, showAllTrending, 4)
+        ) : (
+          <EmptyState message={t('No trending books found at the moment.')} />
+        )}
       </section>
 
       {/* Newly Added Books */}
-      <section className="mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-gray-800 dark:text-white leading-none">{t('Newly Added Books')}</h3>
-          {!showAllNewlyAdded && (
-            <Link to="#" onClick={fetchAllNewlyAddedBooks} className="text-rose-500 hover:underline leading-none">{t('View all')}</Link>
-          )}
-          {showAllNewlyAdded && (
-            <Link to="#" onClick={() => setShowAllNewlyAdded(false)} className="text-rose-500 hover:underline leading-none">{t('Show Less')}</Link>
-          )}
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pb-4">
-          {loading ? (
+      <section className="mb-12">
+        <SectionHeader 
+          title={t('Fresh Arrivals')} 
+          showAll={showAllNewlyAdded} 
+          onToggle={showAllNewlyAdded ? () => setShowAllNewlyAdded(false) : fetchAllNewlyAddedBooks}
+          hasData={newlyAddedBooks.length > 0} 
+        />
+        {loading ? (
+          <GridContainer>
             <SkeletonLoader type="card" count={6} />
-          ) : (
-            (showAllNewlyAdded ? newlyAddedBooks : newlyAddedBooks.slice(0, 4)).map((book) => (
-              <div key={book._id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 cursor-pointer" onClick={() => openModal(book)}>
-                <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${book.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${book.coverImageURL}`) : `https://via.placeholder.com/100x150?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="aspect-[3/4] w-full object-cover rounded-lg mb-2" />
-                <p className="text-xs font-semibold text-gray-800 dark:text-white">{book.title}</p>
-                <p className="text-xs text-gray-600 dark:text-gray-300">{book.author}</p>
-              </div>
-            ))
-          )}
-        </div>
+          </GridContainer>
+        ) : newlyAddedBooks.length > 0 ? (
+          renderBookGrid(newlyAddedBooks, showAllNewlyAdded, 4)
+        ) : (
+          <EmptyState message={t('No new books added recently.')} />
+        )}
       </section>
 
       {/* History */}
-      <section className="mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-gray-800 dark:text-white leading-none">{t('History')}</h3>
-          {!showAllHistory && (
-            <Link to="#" onClick={fetchAllHistory} className="text-rose-500 hover:underline leading-none">{t('View all')}</Link>
-          )}
-          {showAllHistory && (
-            <Link to="#" onClick={() => setShowAllHistory(false)} className="text-rose-500 hover:underline leading-none">{t('Show Less')}</Link>
-          )}
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pb-4">
-          {loading ? (
+      <section className="mb-12">
+        <SectionHeader 
+          title={t('Continue Reading')} 
+          showAll={showAllHistory} 
+          onToggle={showAllHistory ? () => setShowAllHistory(false) : fetchAllHistory}
+          hasData={history.length > 0} 
+        />
+        {loading ? (
+          <GridContainer>
             <SkeletonLoader type="card" count={6} />
-          ) : (
-            (showAllHistory ? history : history.slice(0, 4)).map((item) => (
+          </GridContainer>
+        ) : history.length > 0 ? (
+          <GridContainer>
+            {(showAllHistory ? history : history.slice(0, 4)).map((item) => (
               item.book && (
-                <div key={item.book._id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 cursor-pointer" onClick={() => openModal(item.book)}>
-                  <img src={item.book.coverImageURL ? (item.book.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${item.book.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${item.book.coverImageURL}`) : `https://via.placeholder.com/100x150?text=${item.book.title.replace(/\s/g, '+')}`} alt={item.book.title} className="aspect-[3/4] w-full object-cover rounded-lg mb-2" />
-                  <p className="text-xs font-semibold text-gray-800 dark:text-white">{item.book.title}</p>
-                </div>
+                <BookCard 
+                  key={item.book._id} 
+                  book={item.book} 
+                  onClick={openModal}
+                  isFavorite={favorites.some(fav => fav._id === item.book._id)}
+                />
               )
-            ))
-          )}
-        </div>
+            ))}
+          </GridContainer>
+        ) : (
+          <EmptyState message={t("You haven't read any books yet. Start exploring!")} />
+        )}
       </section>
 
       {/* Favourites */}
-      <section className="mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-gray-800 dark:text-white leading-none">{t('Favourites')}</h3>
-          {!showAllFavorites && (
-            <Link to="#" onClick={fetchAllFavorites} className="text-rose-500 hover:underline leading-none">{t('View all')}</Link>
-          )}
-          {showAllFavorites && (
-            <Link to="#" onClick={() => setShowAllFavorites(false)} className="text-rose-500 hover:underline leading-none">{t('Show Less')}</Link>
-          )}
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pb-4">
-          {loading ? (
+      <section className="mb-12">
+        <SectionHeader 
+          title={t('Your Favorites')} 
+          showAll={showAllFavorites} 
+          onToggle={showAllFavorites ? () => setShowAllFavorites(false) : fetchAllFavorites}
+          hasData={favorites.length > 0} 
+        />
+        {loading ? (
+          <GridContainer>
             <SkeletonLoader type="card" count={6} />
-          ) : (
-            (showAllFavorites ? favorites : favorites.slice(0, 4)).map((book) => (
-              <div key={book._id} className="relative bg-white dark:bg-gray-800 rounded-lg shadow p-3 cursor-pointer" onClick={() => openModal(book)}>
-                <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${book.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${book.coverImageURL}`) : `https://via.placeholder.com/100x150?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="aspect-[3/4] w-full object-cover rounded-lg mb-2" />
-                <div className="absolute top-2 right-2 bg-white dark:bg-gray-700 rounded-full p-1.5 shadow-md">
-                  <FaHeart className="text-rose-500" />
-                </div>
-                <p className="text-xs font-semibold text-gray-800 dark:text-white">{book.title}</p>
-              </div>
-            ))
-          )}
-        </div>
+          </GridContainer>
+        ) : favorites.length > 0 ? (
+          renderBookGrid(favorites, showAllFavorites, 4)
+        ) : (
+          <EmptyState message={t('No favorites yet. Heart a book to see it here!')} />
+        )}
       </section>
 
       {isModalOpen && (
-        <BookDetailModal book={selectedBook} onClose={closeModal} handleAddToFavorites={handleAddToFavorites} favoritedBooks={favorites.map(fav => fav._id)} />
+        <BookDetailModal 
+          book={selectedBook} 
+          onClose={closeModal} 
+          handleAddToFavorites={handleAddToFavorites} 
+          favoritedBooks={favorites.map(fav => fav._id)} 
+        />
       )}
     </DashboardLayout>
   );

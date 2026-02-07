@@ -56,13 +56,13 @@ function Register() {
               {t('Username')}
             </label>
             <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-300 group-focus-within:text-purple-300 transition-colors">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-300 group-focus-within:text-indigo-300 transition-colors">
                 <FaUser className="h-4 w-4" />
               </div>
               <input
                 type="text"
                 id="username"
-                className="block w-full pl-11 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-300"
+                className="block w-full pl-11 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
                 placeholder={t('johndoe')}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -77,13 +77,13 @@ function Register() {
               {t('Email Address')}
             </label>
             <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-300 group-focus-within:text-purple-300 transition-colors">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-300 group-focus-within:text-indigo-300 transition-colors">
                 <FaEnvelope className="h-4 w-4" />
               </div>
               <input
                 type="email"
                 id="email"
-                className="block w-full pl-11 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-300"
+                className="block w-full pl-11 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
                 placeholder={t('name@example.com')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -98,13 +98,13 @@ function Register() {
               {t('Password')}
             </label>
             <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-300 group-focus-within:text-purple-300 transition-colors">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-300 group-focus-within:text-indigo-300 transition-colors">
                 <FaLock className="h-4 w-4" />
               </div>
               <input
                 type={showPassword ? "text" : "password"}
                 id="password"
-                className="block w-full pl-11 pr-12 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-300"
+                className="block w-full pl-11 pr-12 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
                 placeholder={t('••••••••')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -126,13 +126,13 @@ function Register() {
               {t('Confirm Password')}
             </label>
             <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-300 group-focus-within:text-purple-300 transition-colors">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-300 group-focus-within:text-indigo-300 transition-colors">
                 <FaLock className="h-4 w-4" />
               </div>
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 id="confirm-password"
-                className="block w-full pl-11 pr-12 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-300"
+                className="block w-full pl-11 pr-12 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
                 placeholder={t('••••••••')}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -157,7 +157,7 @@ function Register() {
 
           <button
             type="submit"
-            className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-300 transform hover:translate-y-[-1px] active:translate-y-[1px] disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-purple-600/30"
+            className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 transform hover:translate-y-[-1px] active:translate-y-[1px] disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-indigo-900/30"
             disabled={loading}
           >
             {loading ? (
@@ -173,7 +173,7 @@ function Register() {
           <div className="text-center mt-4">
             <p className="text-sm text-gray-200">
               {t('Already have an account?')}{' '}
-              <Link to="/login" className="text-purple-200 hover:text-white transition-colors font-bold ml-1">
+              <Link to="/login" className="text-indigo-200 hover:text-white transition-colors font-bold ml-1">
                 {t('Login')}
               </Link>
             </p>

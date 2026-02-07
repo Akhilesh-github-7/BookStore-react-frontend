@@ -2,10 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useSocket } from '../context/SocketContext';
 import API from '../api';
 import DashboardLayout from './DashboardLayout';
-import { FaStar, FaHeart } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import BookDetailModal from './BookDetailModal';
 import SkeletonLoader from './SkeletonLoader';
+import BookCard from './BookCard';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 function PublicLibrary() {
   const { t } = useTranslation();
@@ -17,14 +18,12 @@ function PublicLibrary() {
   const [selectedBook, setSelectedBook] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const [booksPerPage] = useState(4); // Display 4 books per page
+  const [booksPerPage] = useState(8);
   const [totalPages, setTotalPages] = useState(1);
   const [totalBooksCount, setTotalBooksCount] = useState(0);
 
-  const openModal = (bookId) => {
-    const bookFromState = books.find(b => b._id === bookId);
-    console.log('openModal: bookFromState', bookFromState);
-    setSelectedBook(bookFromState);
+  const openModal = (book) => {
+    setSelectedBook(book);
     setIsModalOpen(true);
   };
 
@@ -54,21 +53,17 @@ function PublicLibrary() {
 
     socket.on('rating_updated', (updatedBook) => {
       setBooks((prevBooks) => {
-        const newBooks = prevBooks.map((book) =>
+        return prevBooks.map((book) =>
           book._id === updatedBook._id ? updatedBook : book
         );
-        console.log('Frontend updating books state:', newBooks);
-        return newBooks;
       });
     });
 
     socket.on('readers_count_updated', (updatedBook) => {
       setBooks((prevBooks) => {
-        const newBooks = prevBooks.map((book) =>
+        return prevBooks.map((book) =>
           book._id === updatedBook._id ? updatedBook : book
         );
-        console.log('Frontend updating books state with new readers count:', newBooks);
-        return newBooks;
       });
     });
 
@@ -76,16 +71,6 @@ function PublicLibrary() {
       socket.off('rating_updated');
     };
   }, [page, socket, t, booksPerPage]);
-
-  useEffect(() => {
-    if (isModalOpen && selectedBook) {
-      const updatedSelectedBook = books.find(book => book._id === selectedBook._id);
-      if (updatedSelectedBook) {
-        console.log('useEffect: updatedSelectedBook', updatedSelectedBook);
-        setSelectedBook(updatedSelectedBook);
-      }
-    }
-  }, [books, isModalOpen, selectedBook]);
 
   const fetchFavorites = async () => {
     try {
@@ -96,17 +81,7 @@ function PublicLibrary() {
     }
   };
 
-  const handleAddToPersonalLibrary = async (bookId) => {
-    try {
-      await API.post(`/collections/add-from-public/${bookId}`);
-    } catch (err) {
-      setError(t('Failed to add book to personal library.'));
-      console.error('Error adding book to personal library:', err);
-    }
-  };
-
   const handleAddToFavorites = useCallback(async (bookId) => {
-    // Optimistic UI update
     setFavoritedBooks((prevFavoritedBooks) => {
       if (prevFavoritedBooks.includes(bookId)) {
         return prevFavoritedBooks;
@@ -116,32 +91,21 @@ function PublicLibrary() {
 
     try {
       await API.post('/favorites', { bookId });
-    } catch (err) {
-      // Revert UI update on error
+    } catch {
       setFavoritedBooks((prevFavoritedBooks) => prevFavoritedBooks.filter(id => id !== bookId));
       setError(t('Failed to add book to favorites.'));
     }
   }, [setFavoritedBooks, setError, t]);
 
-  const handleRateBook = async (bookId, rating) => {
-    try {
-      const response = await API.post(`/public-books/${bookId}/rate`, { rating });
-      const updatedBook = response.data;
-      setBooks(books.map(book => book._id === bookId ? updatedBook : book));
-    } catch (err) {
-      setError(t('Failed to rate book.'));
-      console.error('Error rating book:', err);
-    }
-  };
-
-  console.log('Type of handleAddToFavorites before render:', typeof handleAddToFavorites);
-
   if (loading) {
     return (
       <DashboardLayout>
         <div className="p-4 sm:p-6 md:p-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-6">{t('Public Library')}</h1>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <h1 className="text-3xl font-extrabold text-slate-800 dark:text-white mb-6 tracking-tight relative">
+            {t('Public Library')}
+            <span className="absolute bottom-0 left-0 w-20 h-1 bg-gradient-to-r from-indigo-600 to-blue-500 rounded-full"></span>
+          </h1>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
             <SkeletonLoader type="card" count={booksPerPage} />
           </div>
         </div>
@@ -150,71 +114,88 @@ function PublicLibrary() {
   }
 
   if (error) {
-    return <DashboardLayout><div className="text-center text-red-500 dark:text-red-400 text-xl mt-10">{error}</div></DashboardLayout>;
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="text-center text-red-500 dark:text-red-400 text-xl font-medium bg-red-50 dark:bg-red-900/20 px-6 py-4 rounded-xl border border-red-100 dark:border-red-900/50">
+            {error}
+          </div>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (
-    <DashboardLayout key={JSON.stringify(books)}>
+    <DashboardLayout>
       <div className="p-4 sm:p-6 md:p-8">
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-4 sm:mb-0">{t('Public Library')}</h1>
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8">
+          <h1 className="text-3xl font-extrabold text-slate-800 dark:text-white mb-4 sm:mb-0 tracking-tight relative pb-2">
+            {t('Public Library')}
+            <span className="absolute bottom-0 left-0 w-24 h-1.5 bg-gradient-to-r from-indigo-600 to-blue-500 rounded-full"></span>
+          </h1>
+          
+          <div className="text-sm font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-lg">
+            {t('Showing')} <span className="text-indigo-600 dark:text-indigo-400 font-bold">{Math.min(booksPerPage * page, totalBooksCount)}</span> {t('of')} <span className="font-bold">{totalBooksCount}</span> {t('books')}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
           {books.map((book) => (
-            <div key={book._id + '_' + book.averageRating + '_' + book.numberOfRatings} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden group cursor-pointer" onClick={() => openModal(book._id)}>
-              <div className="relative">
-                <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${book.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${book.coverImageURL}`) : `https://via.placeholder.com/300x400.png?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="aspect-[3/4] w-full object-cover" />
-                <div className="absolute top-2 right-2 bg-white dark:bg-gray-700 rounded-full p-1.5 shadow-md opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => {e.stopPropagation(); handleAddToFavorites(book._id);}}>
-                  <FaHeart className={favoritedBooks.includes(book._id) ? 'text-red-500' : 'text-gray-400'} />
-                </div>
-              </div>
-              <div className="p-4">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-white truncate">{book.title}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-300 mb-2 truncate">{book.author}</p>
-                <div className="flex items-center mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <FaStar key={i} className={i < Math.round(book.averageRating) ? 'text-yellow-400' : 'text-gray-300'} onClick={(e) => {e.stopPropagation(); handleRateBook(book._id, i + 1);}} style={{ cursor: 'pointer' }} />
-                  ))}
-                  <span className="ml-2 text-gray-600 dark:text-gray-300 text-sm">{book.averageRating ? book.averageRating.toFixed(1) : 'N/A'} ({book.numberOfRatings || 0})</span>
-                  <span className="ml-2 text-gray-600 dark:text-gray-300 text-sm">| {book.uniqueReadersCount || 0} {t('readers')}</span>
-                </div>
-                <button onClick={(e) => {e.stopPropagation(); handleAddToPersonalLibrary(book._id);}} className="w-full px-4 py-2 text-sm font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700">{t('Add to Personal Library')}</button>
-              </div>
-            </div>
+            <BookCard 
+              key={book._id} 
+              book={book} 
+              onClick={openModal} 
+              isFavorite={favoritedBooks.includes(book._id)}
+            />
           ))} 
         </div>
 
-        {isModalOpen && <BookDetailModal book={selectedBook} onClose={closeModal} handleAddToFavorites={handleAddToFavorites} favoritedBooks={favoritedBooks} />}
+        {isModalOpen && (
+          <BookDetailModal 
+            book={selectedBook} 
+            onClose={closeModal} 
+            handleAddToFavorites={handleAddToFavorites} 
+            favoritedBooks={favoritedBooks} 
+          />
+        )}
 
-        <div className="flex flex-col sm:flex-row justify-between items-center mt-8">
-          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 sm:mb-0">{t('Showing')} {Math.min(booksPerPage, books.length)} {t('from')} {totalBooksCount} {t('data')}</p>
-          <div className="flex items-center gap-2">
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center mt-12 gap-2">
             <button
               onClick={() => setPage(page - 1)}
               disabled={page === 1}
-              className="px-4 py-2 text-sm font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+              className="flex items-center justify-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700"
             >
+              <FaChevronLeft className="mr-2" />
               {t('Previous')}
             </button>
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button
-                key={i + 1}
-                onClick={() => setPage(i + 1)}
-                className={`px-4 py-2 text-sm font-medium ${page === i + 1 ? 'text-white bg-purple-600 border border-purple-600' : 'text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600'} rounded-md hover:bg-gray-50 dark:hover:bg-gray-600`}
-              >
-                {i + 1}
-              </button>
-            ))}
+            
+            <div className="hidden sm:flex gap-2">
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i + 1}
+                  onClick={() => setPage(i + 1)}
+                  className={`w-10 h-10 flex items-center justify-center text-sm font-bold rounded-lg transition-all ${
+                    page === i + 1 
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' 
+                      : 'text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+
             <button
               onClick={() => setPage(page + 1)}
               disabled={page === totalPages}
-              className="px-4 py-2 text-sm font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+              className="flex items-center justify-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700"
             >
               {t('Next')}
+              <FaChevronRight className="ml-2" />
             </button>
           </div>
-        </div>
+        )}
       </div>
     </DashboardLayout>
   );

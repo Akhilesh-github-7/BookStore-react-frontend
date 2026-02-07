@@ -6,11 +6,12 @@ import App from './App.jsx';
 import './i18n';
 import { ThemeProvider } from './context/ThemeContext';
 import { SocketProvider } from './context/SocketContext';
+import LoadingSpinner from './components/LoadingSpinner';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <Suspense fallback="loading">
+      <Suspense fallback={<LoadingSpinner />}>
         <ThemeProvider>
           <SocketProvider>
             <App />

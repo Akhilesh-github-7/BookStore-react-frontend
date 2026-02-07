@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaTimes, FaUser, FaCity, FaGlobeAmericas } from 'react-icons/fa';
+import { FaTimes, FaLock } from 'react-icons/fa';
 
-function EditProfileModal({ isOpen, onClose, currentUsername, currentCity, currentCountry, onUpdateProfile }) {
+function ChangePasswordModal({ isOpen, onClose, onChangePassword }) {
   const { t } = useTranslation();
-  const [newUsername, setNewUsername] = useState(currentUsername || '');
-  const [newCity, setNewCity] = useState(currentCity || '');
-  const [newCountry, setNewCountry] = useState(currentCountry || '');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -15,40 +15,47 @@ function EditProfileModal({ isOpen, onClose, currentUsername, currentCity, curre
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
 
-    if (newUsername === currentUsername && newCity === currentCity && newCountry === currentCountry) {
-      setError(t('No changes were made.'));
-      setLoading(false);
+    if (newPassword !== confirmPassword) {
+      setError(t('New passwords do not match.'));
       return;
     }
 
-    const result = await onUpdateProfile({ username: newUsername, city: newCity, country: newCountry });
+    if (newPassword.length < 6) {
+      setError(t('Password must be at least 6 characters long.'));
+      return;
+    }
+
+    setLoading(true);
+    const result = await onChangePassword(currentPassword, newPassword);
     if (result.success) {
       onClose();
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
     } else {
-      setError(result.message || t('Failed to update profile.'));
+      setError(result.message || t('Failed to change password.'));
     }
     setLoading(false);
   };
 
-  const InputField = ({ label, id, icon: Icon, value, onChange, placeholder, required = false }) => (
+  const InputField = ({ label, id, value, onChange, placeholder }) => (
     <div className="mb-5">
       <label htmlFor={id} className="block text-slate-700 dark:text-slate-300 text-sm font-bold mb-2 ml-1">
         {label}
       </label>
       <div className="relative group">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
-          <Icon size={16} />
+          <FaLock size={16} />
         </div>
         <input
-          type="text"
+          type="password"
           id={id}
           className="block w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          required={required}
+          required
         />
       </div>
     </div>
@@ -60,7 +67,7 @@ function EditProfileModal({ isOpen, onClose, currentUsername, currentCity, curre
         
         {/* Header */}
         <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
-          <h2 className="text-xl font-bold text-slate-800 dark:text-white">{t('Edit Profile')}</h2>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-white">{t('Change Password')}</h2>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-white dark:hover:bg-slate-700 text-slate-500 transition-colors shadow-sm border border-transparent hover:border-slate-100">
             <FaTimes />
           </button>
@@ -68,39 +75,31 @@ function EditProfileModal({ isOpen, onClose, currentUsername, currentCity, curre
 
         <form onSubmit={handleSubmit} className="p-6 sm:p-8">
           <InputField 
-            label={t('Username')}
-            id="username"
-            icon={FaUser}
-            value={newUsername}
-            onChange={(e) => setNewUsername(e.target.value)}
-            placeholder={t('Enter username')}
-            required
+            label={t('Current Password')}
+            id="currentPassword"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            placeholder={t('Enter current password')}
           />
           
           <InputField 
-            label={t('City')}
-            id="city"
-            icon={FaCity}
-            value={newCity}
-            onChange={(e) => setNewCity(e.target.value)}
-            placeholder={t('Enter city')}
+            label={t('New Password')}
+            id="newPassword"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder={t('Enter new password')}
           />
 
           <InputField 
-            label={t('Country')}
-            id="country"
-            icon={FaGlobeAmericas}
-            value={newCountry}
-            onChange={(e) => setNewCountry(e.target.value)}
-            placeholder={t('Enter country')}
+            label={t('Confirm New Password')}
+            id="confirmPassword"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder={t('Confirm new password')}
           />
 
           {error && (
-            <div className={`mb-6 p-3 rounded-xl text-xs font-medium text-center border ${
-              error === t('No changes were made.') 
-                ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900/50 text-amber-600 dark:text-amber-400'
-                : 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/50 text-red-600 dark:text-red-400'
-            }`}>
+            <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/50 rounded-xl text-red-600 dark:text-red-400 text-xs font-medium text-center">
               {error}
             </div>
           )}
@@ -117,9 +116,9 @@ function EditProfileModal({ isOpen, onClose, currentUsername, currentCity, curre
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  {t('Saving...')}
+                  {t('Updating...')}
                 </span>
-              ) : t('Save Changes')}
+              ) : t('Update Password')}
             </button>
             <button
               type="button"
@@ -135,4 +134,4 @@ function EditProfileModal({ isOpen, onClose, currentUsername, currentCity, curre
   );
 }
 
-export default EditProfileModal;
+export default ChangePasswordModal;
