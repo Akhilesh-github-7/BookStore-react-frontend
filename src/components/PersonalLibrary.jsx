@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSocket } from '../context/SocketContext';
-import API from '../api';
+import API, { getMediaURL } from '../api';
 import { useAuth } from '../context/AuthContext';
 import DashboardLayout from './DashboardLayout';
 import { FaStar, FaHeart, FaPlus, FaTrash, FaGlobe, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
@@ -318,7 +318,7 @@ function PersonalLibrary() {
             {personalBooks.map((book) => (
               <div key={book._id} className="group relative bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col h-full">
                 <div className="relative aspect-[2/3] overflow-hidden">
-                  <img src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${book.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${book.coverImageURL}`) : `https://via.placeholder.com/300x400.png?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  <img src={getMediaURL(book.coverImageURL) || `https://via.placeholder.com/300x400.png?text=${book.title.replace(/\s/g, '+')}`} alt={book.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                   <div className="absolute top-2 right-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full p-1.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={() => handleAddToFavorites(book._id)}>
                     <FaHeart className={favoritedBooks.includes(book._id) ? 'text-red-500' : 'text-slate-400'} />
                   </div>

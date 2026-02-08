@@ -1,16 +1,12 @@
 import React from 'react';
 import { FaStar, FaHeart } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
+import { getMediaURL } from '../api';
 
 function BookCard({ book, onClick, isFavorite = false }) {
   const { t } = useTranslation();
   
-  // Helper to handle image URLs safely
-  const getCoverImage = (url) => {
-    if (!url) return `https://via.placeholder.com/150x200?text=${book.title?.replace(/\s/g, '+') || 'No+Title'}`;
-    if (url.startsWith('http')) return url;
-    return `https://bookstore-backend-3ujv.onrender.com${url.startsWith('/') ? '' : '/'}${url}`;
-  };
+  const coverImage = getMediaURL(book.coverImageURL) || `https://via.placeholder.com/150x200?text=${book.title?.replace(/\s/g, '+') || 'No+Title'}`;
 
   return (
     <div 
@@ -20,10 +16,14 @@ function BookCard({ book, onClick, isFavorite = false }) {
       {/* Image Container */}
       <div className="relative aspect-[2/3] overflow-hidden w-full">
         <img 
-          src={getCoverImage(book.coverImageURL)} 
+          src={coverImage} 
           alt={book.title} 
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           loading="lazy"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = `https://via.placeholder.com/150x200?text=${book.title?.replace(/\s/g, '+') || 'No+Title'}`;
+          }}
         />
         {/* Overlay gradient on hover */}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

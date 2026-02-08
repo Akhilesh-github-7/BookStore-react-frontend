@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import ToggleSwitch from './ToggleSwitch';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { getMediaURL } from '../api';
 import EditProfileModal from './EditProfileModal';
 import ChangeProfileImageModal from './ChangeProfileImageModal';
 import ChangePasswordModal from './ChangePasswordModal';
@@ -89,9 +90,9 @@ function Settings() {
   };
 
   const getCoverImage = (url, title) => {
-    if (!url) return `https://via.placeholder.com/100x150?text=${title?.replace(/\s/g, '+') || 'Book'}`;
-    if (url.startsWith('http')) return url;
-    return `https://bookstore-backend-3ujv.onrender.com${url.startsWith('/') ? '' : '/'}${url}`;
+    const mediaURL = getMediaURL(url);
+    if (mediaURL) return mediaURL;
+    return `https://via.placeholder.com/100x150?text=${title?.replace(/\s/g, '+') || 'Book'}`;
   };
 
   const memberSince = useMemo(() => {

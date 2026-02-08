@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import EditProfileModal from './EditProfileModal';
 import ChangeProfileImageModal from './ChangeProfileImageModal';
 import { useTranslation } from 'react-i18next';
-import API from '../api';
+import API, { getMediaURL } from '../api';
 import Logo from './Logo';
 
 function DashboardLayout({ children }) {
@@ -162,7 +162,7 @@ function DashboardLayout({ children }) {
             <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-3 mb-4">
                 {user?.profileImage ? (
-                  <img src={`https://bookstore-backend-3ujv.onrender.com${user.profileImage}`} alt="Profile" className="h-10 w-10 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-sm" />
+                  <img src={getMediaURL(user.profileImage)} alt="Profile" className="h-10 w-10 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-sm" />
                 ) : (
                   <div className="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600">
                     <FaUserCircle size={24} />
@@ -256,7 +256,7 @@ function DashboardLayout({ children }) {
                     <span className="text-xs text-slate-500 dark:text-slate-400">{user?.email ? t('Reader') : t('Visitor')}</span>
                   </div>
                   {user?.profileImage ? (
-                    <img src={`https://bookstore-backend-3ujv.onrender.com${user.profileImage}`} alt="Profile" className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-sm group-hover:ring-indigo-200 transition-all" />
+                    <img src={getMediaURL(user.profileImage)} alt="Profile" className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-sm group-hover:ring-indigo-200 transition-all" />
                   ) : (
                     <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-indigo-900 dark:to-blue-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300 shadow-sm">
                       <FaUserCircle className="text-xl sm:text-2xl" />

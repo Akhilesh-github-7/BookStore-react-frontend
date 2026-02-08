@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { FaStar, FaHeart, FaBookOpen, FaDownload, FaTimes, FaCalendarAlt, FaUsers } from 'react-icons/fa';
-import API from '../api';
+import API, { getMediaURL, BASE_URL } from '../api';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -76,7 +76,7 @@ const BookDetailModal = ({ book: initialBook, onClose, handleAddToFavorites, fav
             <div className="w-40 sm:w-48 mx-auto sm:mx-0 shrink-0">
               <div className="relative group rounded-2xl overflow-hidden shadow-2xl ring-1 ring-black/5 dark:ring-white/10">
                 <img 
-                  src={book.coverImageURL ? (book.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${book.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${book.coverImageURL}`) : `https://via.placeholder.com/150x200?text=${book.title.replace(/\s/g, '+')}`} 
+                  src={getMediaURL(book.coverImageURL) || `https://via.placeholder.com/150x200?text=${book.title.replace(/\s/g, '+')}`} 
                   alt={book.title} 
                   className="w-full h-auto aspect-[3/4] object-cover" 
                 />
@@ -159,7 +159,7 @@ const BookDetailModal = ({ book: initialBook, onClose, handleAddToFavorites, fav
                   className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold p-2.5 sm:p-3 rounded-xl sm:rounded-2xl transition-all border border-slate-200 dark:border-slate-700"
                   onClick={() => {
                     if (book.filePath) {
-                      const downloadUrl = `https://bookstore-backend-3ujv.onrender.com/public${book.filePath}?title=${encodeURIComponent(book.title)}`;
+                      const downloadUrl = `${BASE_URL}/public${book.filePath}?title=${encodeURIComponent(book.title)}`;
                       const link = document.body.appendChild(document.createElement('a'));
                       link.href = downloadUrl;
                       link.download = `${book.title}.pdf`;
@@ -205,7 +205,7 @@ const BookDetailModal = ({ book: initialBook, onClose, handleAddToFavorites, fav
                 {otherBooksByAuthor.map((b) => (
                   <div key={b._id} className="group cursor-pointer">
                     <div className="aspect-[3/4] rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 mb-2">
-                      <img src={b.coverImageURL ? (b.coverImageURL.startsWith('public/uploads/') ? `https://bookstore-backend-3ujv.onrender.com/${b.coverImageURL}` : `https://bookstore-backend-3ujv.onrender.com${b.coverImageURL}`) : `https://via.placeholder.com/100x150?text=${b.title.replace(/\s/g, '+')}`} alt={b.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                      <img src={getMediaURL(b.coverImageURL) || `https://via.placeholder.com/100x150?text=${b.title.replace(/\s/g, '+')}`} alt={b.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
                     </div>
                     <p className="text-[10px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 truncate leading-tight group-hover:text-indigo-600 transition-colors">{b.title}</p>
                   </div>

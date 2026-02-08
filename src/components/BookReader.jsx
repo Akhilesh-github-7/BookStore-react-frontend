@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaExpand, FaCompress, FaMoon, FaSun, FaInfoCircle, FaTimes } from 'react-icons/fa';
-import API from '../api';
+import API, { getMediaURL } from '../api';
 import LoadingSpinner from './LoadingSpinner';
 import { useTranslation } from 'react-i18next';
 
@@ -51,7 +51,7 @@ function BookReader() {
     </div>
   );
 
-  const pdfUrl = `https://bookstore-backend-3ujv.onrender.com${book.filePath}`;
+  const pdfUrl = getMediaURL(book.filePath);
 
   return (
     <div className={`fixed inset-0 z-50 flex flex-col h-[100dvh] w-screen ${isDarkMode ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-900'} transition-all duration-500 overflow-hidden`}>

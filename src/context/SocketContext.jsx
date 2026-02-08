@@ -1,8 +1,9 @@
 
 import React, { createContext, useContext } from 'react';
 import io from 'socket.io-client';
+import { BASE_URL } from '../api';
 
-const socket = io('https://bookstore-backend-3ujv.onrender.com');
+const socket = io(BASE_URL);
 const SocketContext = createContext(socket);
 
 export const useSocket = () => {
