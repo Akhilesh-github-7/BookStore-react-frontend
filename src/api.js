@@ -10,13 +10,16 @@ export const getMediaURL = (url) => {
   if (!url) return '';
   if (url.startsWith('http')) return url;
   
-  // Normalize path: ensure it starts with / and remove redundant public/ prefix if present
-  let normalizedPath = url.startsWith('/') ? url : `/${url}`;
-  if (normalizedPath.startsWith('/public/')) {
-    normalizedPath = normalizedPath.replace('/public/', '/');
-  }
+  // For legacy local paths, prepend BASE_URL
+  // Ensure path starts with /
+  const normalizedPath = url.startsWith('/') ? url : `/${url}`;
   
-  return `${BASE_URL}${normalizedPath}`;
+  // Handle public/ prefix if it exists in legacy paths
+  const cleanPath = normalizedPath.startsWith('/public/') 
+    ? normalizedPath.replace('/public/', '/') 
+    : normalizedPath;
+    
+  return `${BASE_URL}${cleanPath}`;
 };
 
 API.interceptors.request.use((req) => {
