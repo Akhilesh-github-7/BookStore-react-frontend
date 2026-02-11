@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaExpand, FaCompress, FaMoon, FaSun, FaInfoCircle, FaTimes } from 'react-icons/fa';
+import { FaArrowLeft, FaExpand, FaCompress, FaMoon, FaSun, FaInfoCircle, FaTimes, FaBookOpen } from 'react-icons/fa';
 import API, { getMediaURL } from '../api';
 import LoadingSpinner from './LoadingSpinner';
 import { useTranslation } from 'react-i18next';
@@ -104,7 +104,7 @@ function BookReader() {
       {/* Reader Area */}
       <main className="flex-grow relative bg-slate-800 touch-none" onClick={() => setShowControls(!showControls)}>
         <iframe
-          src={`${pdfUrl}#toolbar=1&navpanes=0&scrollbar=1&view=FitH`}
+          src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
           title={book.title}
           className="w-full h-full border-none pointer-events-auto"
           loading="lazy"

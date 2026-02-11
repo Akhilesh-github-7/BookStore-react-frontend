@@ -3,7 +3,7 @@ import { useSocket } from '../context/SocketContext';
 import API, { getMediaURL } from '../api';
 import { useAuth } from '../context/AuthContext';
 import DashboardLayout from './DashboardLayout';
-import { FaStar, FaHeart, FaPlus, FaTrash, FaGlobe, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaStar, FaHeart, FaPlus, FaTrash, FaGlobe, FaChevronLeft, FaChevronRight, FaEdit } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import SkeletonLoader from './SkeletonLoader';
 import { HiOutlineUpload } from 'react-icons/hi';
@@ -15,9 +15,22 @@ function PersonalLibrary() {
   const [personalBooks, setPersonalBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [showAddBookForm, setShowAddBookForm] = useState(false);
+  const [showEditBookForm, setShowEditBookForm] = useState(false);
+  const [editingBookId, setEditingBookId] = useState(null);
 
   const [newBook, setNewBook] = useState({
+    title: '',
+    author: '',
+    genre: '',
+    summary: '',
+    isPublic: false,
+    bookPdf: null,
+    coverImage: null,
+  });
+
+  const [editBookData, setEditBookData] = useState({
     title: '',
     author: '',
     genre: '',
@@ -127,11 +140,62 @@ function PersonalLibrary() {
         coverImage: null,
       });
       setShowAddBookForm(false);
+      setSuccess(t('Book added successfully!'));
+      setTimeout(() => setSuccess(''), 3000);
       fetchPersonalBooks(currentPage);
     } catch (err) {
       setError(t('Failed to add book.'));
       console.error('Error adding book:', err);
     }
+  };
+
+  const handleUpdateBook = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('title', editBookData.title);
+    formData.append('author', editBookData.author);
+    formData.append('genre', editBookData.genre);
+    formData.append('summary', editBookData.summary);
+    formData.append('isPublic', editBookData.isPublic);
+    
+    if (editBookData.bookPdf) {
+      formData.append('bookPdf', editBookData.bookPdf);
+    }
+    if (editBookData.coverImage) {
+      formData.append('coverImage', editBookData.coverImage);
+    }
+
+    try {
+      await API.put(`/personal-books/${editingBookId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      setShowEditBookForm(false);
+      setEditingBookId(null);
+      setSuccess(t('Book updated successfully!'));
+      setTimeout(() => setSuccess(''), 3000);
+      fetchPersonalBooks(currentPage);
+    } catch (err) {
+      setError(t('Failed to update book.'));
+      console.error('Error updating book:', err);
+    }
+  };
+
+  const handleEditClick = (book) => {
+    setEditingBookId(book._id);
+    setEditBookData({
+      title: book.title,
+      author: book.author,
+      genre: Array.isArray(book.genre) ? book.genre.join(', ') : book.genre,
+      summary: book.summary || '',
+      isPublic: book.isPublic,
+      bookPdf: null,
+      coverImage: null,
+    });
+    setShowEditBookForm(true);
+    setShowAddBookForm(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleAddToPublic = async (bookId) => {
@@ -221,6 +285,13 @@ function PersonalLibrary() {
             </button>
           </div>
         </div>
+
+        {success && (
+          <div className="mb-6 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/50 rounded-xl text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-2 animate-bounce-short">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+            {success}
+          </div>
+        )}
 
         {showAddBookForm && (
           <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 mb-10 animate-fade-in-down">
@@ -313,6 +384,108 @@ function PersonalLibrary() {
           </div>
         )}
 
+        {showEditBookForm && (
+          <div className="bg-indigo-50 dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-xl border border-indigo-100 dark:border-slate-700 mb-10 animate-fade-in-down">
+            <h2 className="text-2xl font-bold mb-6 text-slate-800 dark:text-white border-b border-indigo-100 dark:border-slate-700 pb-2 flex items-center gap-2">
+              <FaEdit className="text-indigo-600" /> {t('Edit Book Details')}
+            </h2>
+            <form onSubmit={handleUpdateBook} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">{t('Title')}</label>
+                  <input
+                    type="text"
+                    placeholder={t('Title')}
+                    value={editBookData.title}
+                    onChange={(e) => setEditBookData({ ...editBookData, title: e.target.value })}
+                    className="w-full p-3 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">{t('Author')}</label>
+                  <input
+                    type="text"
+                    placeholder={t('Author')}
+                    value={editBookData.author}
+                    onChange={(e) => setEditBookData({ ...editBookData, author: e.target.value })}
+                    className="w-full p-3 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">{t('Genre')}</label>
+                  <input
+                    type="text"
+                    placeholder={t('Genre')}
+                    value={editBookData.genre}
+                    onChange={(e) => setEditBookData({ ...editBookData, genre: e.target.value })}
+                    className="w-full p-3 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase ml-1">{t('Description')}</label>
+                  <textarea
+                    placeholder={t('Description')}
+                    value={editBookData.summary}
+                    onChange={(e) => setEditBookData({ ...editBookData, summary: e.target.value })}
+                    className="w-full p-3 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all h-[178px] resize-none"
+                  ></textarea>
+                </div>
+              </div>
+              
+              <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="relative border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-white dark:hover:bg-slate-700/50 transition-colors group cursor-pointer">
+                  <input 
+                    type="file"
+                    id="edit_book_pdf"
+                    onChange={(e) => setEditBookData({ ...editBookData, bookPdf: e.target.files[0] })}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    accept=".pdf"
+                  />
+                  <HiOutlineUpload className="text-3xl text-indigo-500 mb-2 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                    {editBookData.bookPdf ? editBookData.bookPdf.name : t('Replace Book PDF (Optional)')}
+                  </span>
+                </div>
+
+                <div className="relative border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-white dark:hover:bg-slate-700/50 transition-colors group cursor-pointer">
+                  <input 
+                    type="file"
+                    id="edit_cover_image"
+                    onChange={(e) => setEditBookData({ ...editBookData, coverImage: e.target.files[0] })}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    accept=".jpg,.jpeg,.png,.gif"
+                  />
+                  <HiOutlineUpload className="text-3xl text-indigo-500 mb-2 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                    {editBookData.coverImage ? editBookData.coverImage.name : t('Replace Cover Image (Optional)')}
+                  </span>
+                </div>
+              </div>
+
+              <div className="col-span-1 md:col-span-2 flex items-center justify-between pt-4 border-t border-indigo-100 dark:border-slate-700">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editBookData.isPublic}
+                    onChange={(e) => setEditBookData({ ...editBookData, isPublic: e.target.checked })}
+                    className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
+                  />
+                  <span className="ml-2 text-slate-700 dark:text-slate-300 font-medium">{t('Make Public')}</span>
+                </label>
+                <div className="flex gap-3">
+                  <button type="button" onClick={() => setShowEditBookForm(false)} className="px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors">{t('Cancel')}</button>
+                  <button type="submit" className="px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-500/30 transition-all">{t('Update Details')}</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        )}
+
         {personalBooks.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
             {personalBooks.map((book) => (
@@ -336,6 +509,9 @@ function PersonalLibrary() {
                   </p>
                   
                   <div className="mt-auto space-y-2">
+                    <button onClick={() => handleEditClick(book)} className="w-full flex items-center justify-center gap-1 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors">
+                      <FaEdit className="text-xs text-indigo-500" /> {t('Edit Details')}
+                    </button>
                     {!book.isPublic && (
                       <button onClick={() => handleAddToPublic(book._id)} className="w-full flex items-center justify-center gap-1 py-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors">
                         <FaGlobe className="text-xs" /> {t('Make Public')}

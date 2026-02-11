@@ -159,9 +159,10 @@ const BookDetailModal = ({ book: initialBook, onClose, handleAddToFavorites, fav
                   className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold p-2.5 sm:p-3 rounded-xl sm:rounded-2xl transition-all border border-slate-200 dark:border-slate-700"
                   onClick={() => {
                     if (book.filePath) {
-                      const downloadUrl = `${BASE_URL}/public${book.filePath}?title=${encodeURIComponent(book.title)}`;
+                      const downloadUrl = getMediaURL(book.filePath);
                       const link = document.body.appendChild(document.createElement('a'));
                       link.href = downloadUrl;
+                      link.target = '_blank';
                       link.download = `${book.title}.pdf`;
                       link.click();
                       link.remove();
